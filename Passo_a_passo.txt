@@ -1,0 +1,496 @@
+1 . Criar a Maquina Virtual (VM) no VirtualBox
+
+1.1 Instalar VirtualBox(no Ubuntu).
+
+    1.2 Abra o terminal (pressione CTRL+ALT+T "abre terminal").
+    1.3 Digite:
+        bash:
+            sudo apt update
+            sudo apt install VirtualBox
+    1.4 Digite sua senha e espere instalar.
+
+2 . Baixar Debian (ISO).
+    
+    2.1 Vá ao site oficial do Debian e baixe o arquivo .iso da versão estável.
+
+3 . Criar a VM
+
+    3.1 Abra o VirtualBox
+    3.2 Clique em "Novo".
+    3.3 Nomeie: ex. meuDebian42 -> tipo: Linux, Versão: Debian(64-bit).
+    3.4 Clique em Avancar.
+
+4 . Memoria (RAM)
+
+    4.1 Define 2048MB (2G) se seu PC tiver no minimo 8GB, senao reduza 1024MB.
+
+5 . Disco Rígido Virtual
+
+    5.1 Escolha Criar disco rigido virtual agora  -> tipo VDI -> Dinâmico -> ~20GB.
+    5.2 finalize
+
+6 . Atribuir ISO
+
+    6.1 Na VM criada, Clique em Configuracoes -> Armazenamento -> no icone do CD ao lado de "COntroladora IDE"
+    6.2 Selecioen a ISO do Debian que você baixou.
+
+2 . INSTALAR O Debian
+
+    1 Com a VM selecionada, clique em iniciar.
+    2 No menu, selecione install(modo texto).
+    3 Selecione idioma(Ingles), localizacao e layout de teclado.
+    4 Configurar rede
+
+            4.1 Siga até "Hostname": digite seuLogin42 (ex. thevaris42).
+            4.2 "Domain": pode deixar vazio e seguir.
+
+    5 Criar contas
+
+        5.1 Crie a senha para o ROOT.
+        5.2 Crie um usuario com seu login(ex thevaris) e senha.
+
+    6 Particionamento
+
+        6.1 Escolha Guid-use entire disk and set up encrypted LVM.
+        6.2 Confirme todo o disco, crie 2 volumes: /(root) e /home.
+        6.3 Define senha para criptografia.
+    
+    7 Finalize instalacao, instale o sistema base e GRUB(o gerenciador de boot).
+    8 Reite o ISO virtual e reinicie.
+
+3 . ENTRAR NA VM E ATUALIZAR
+
+    1 No login, entre com seu usuario criado (ex thevaris).
+    2 Abra terminal(ja no modo texto).
+    3 Digite:
+    
+        sudo su
+        3.1 vai pedir a senha do seu usuario. Voce entra como root.
+
+    4 Atualize:
+
+        apt upadate && apt upgrade -y
+
+4 INSTALAR E CONFIGURAR SUDO
+
+    1 Ainda como root, instale sudo:
+
+        apt install sudo
+
+    2 adicione seu usuario(thevaris) ao grupo sudo e a um grupo adicional user42:
+
+        useradd -m -G sudo,user42 thevaris
+        passwd thevaris
+        2.1 useradd : cria usuario com diretorio. -G sudo,user42: adiciona ao grupo sudo e user42.
+        2.2 passwd: define senha.
+
+    3 Edite a configuracao com visudo
+
+        visudo
+        3.1 Ele abre o arquivo /etc/sudoers com seguranca.
+
+    4 Adicione configuracoes:
+
+        Defaults        passwd_tries=3
+        Defaults        badpass_message="Senha incorreta. Contate o administrador"
+        Defaults        log_output
+        Defaults        logfile="/var/log/sudo/sudo.log"
+        Defaults        requiretty
+        Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+        4.1 Isso define: limite de 3 tentativas, mensagem personalizada, registro em log, so atuar em terminal(TTY)
+        e restringe caminhos que podem usar sudo.
+
+    5 Salve e saia (CTRL + X, depois Y se estiver usando Nano).
+    6 Crie a pasta de logs e defina permissoes:
+
+        mkdir /var/log/sudo
+        chmod 750 /var/log/sudo
+
+
+5 CONFIGURAR SSH
+
+    1 Instale o servidor SSH:
+
+        apt install openssh-server
+    
+    2 Abra o arquivo de configuracao:
+
+        nano /etc/ssh/sshd_config
+        2.1 altere ou insira:
+
+            Port 4242
+            PermitRootLogin no
+
+    3 Salve e saia.
+    4 Reinicie o servico
+
+        systemctl restart ssh
+
+6 FIREWALL COM UFW
+
+    1 Instale o Firewall:
+
+        apt install ufw
+    
+    2 Configure as regras:
+
+        ufw default deny incoming
+        ufw default allow outgoing
+        ufw allow 4242/tcp
+        ufw enable
+
+    3 Verifique:
+
+        ufw status
+        3.1 Deve mostar que esta allow apena a porta 4242.
+
+7 ATIVAR APPARMOR
+
+    1 Instale o AppArmor:
+
+        apt intall apparmor apparmor-utils
+    
+    2 Ative e inicie:
+
+        systemctl enable apparmor
+        systemctl start apparmor
+
+8 POLITICA DE SENHA FIRME
+
+    1 Abra /etc/login.defs:
+
+        nano /etc/login.defs
+        1.1 Adicione/modifique:
+
+            PASS_MAX_DAYS 30
+            PASS_MIN_DAYS 2
+            PASS_WARN_AGE 7
+
+    2 Instale o modulo de qualidade de senha:
+
+        apt install libpam-pwquality
+
+    3 Edite /etc/pam.d/common-password:
+
+        nano /etc/pam.d/common-password
+        3.1 Dentro da linha de pam_pwdquality.so, adicione:
+
+            retry=3 minlen=10 ucredit=-1 lcredit=-1 dcredut=-1 maxrepeat=3 reject_username
+            3.1.1 isso impoe tamanho minimo 10, 1 maiucula, 1 minuscula, 1 numeo, maximo 3 repetidos e nao permitir nome do usuario.
+
+9 SCRIPT DE MONITORAMENTO
+
+    1 Crie o arquivo:
+
+        nano /usr/local/bin/monitoring.sh
+
+    2 Escreva o script abaixo:
+
+        #!/bin/bash
+
+        info=$(uname -a)
+        p_phys=$(grep -c ^physical\ if /proc/cpuinfo)
+        p_virt=$(nproc)
+        mem=$(free -m | awk '/Mem:/ {printf "%d/%dMB (%.2f%%)", $3, $2, $3/$2*100}')
+        disk=$(df -h / | awk 'NR==2 {printf "%d/%dGB (%.2f%%)", $3, $2, $5}')
+        cpu=$(top -bn1 | grep "Cpu(s)" | awk '{printf "%.1f%%", 100-$8}')
+        last=$(who -b | awk '{print $3, $4}')
+        lvm=$(lsblk | grep lvm &>/dev/null && echo "yes" || echo "no")
+        conn=$(ss -s | grep TCP: | awk '{print $2})
+        users=$(who | wc -l)
+        ip=$(hostname -I | awk '{print $1}')
+        mac=$(ip link | awk '/ether/ {print $2}')
+        sudo_cnt=$(grep -R "COMMAND=" /var/log/sudo/ | wc -l)
+
+        wall "
+
+        #Architecture: $info
+        #CPU physucal: $p_phys
+        #vCPU : $p_virt
+        #Memory Usage : $mem
+        #Disk Usage : $Disk
+        #CPU load : $cpu
+        #Last boot : $last
+        #LVM use : $lvm
+        #Connections TCP : $conn
+        #User log : $users
+        #Network : IP $ip ($mac)
+        #Sudo : $sudo_cnt cmd
+        "
+
+    3 Salve (CTRL+O, Enter) e de permissao:
+
+        chmod +x /usr/local/bin/monitoring.sh
+    
+    4 Configure cron para rodar a cada 10 minutos
+
+        nano /etc/crontab
+        4.1 No final, adicione
+
+            */10 * * * * root /usr/local/bin/monitoring.sh
+
+10 TESTES FINAIS
+
+    1 Reiniciar a VM
+
+        reboot
+
+    2 Conectar via SSH:
+
+        ssh -p 4242 thevaris@<IP-da-VM>
+
+    3 Testar sudo e logs
+
+        3.1 Tente sudo ls /root com senha errada 3x e veja a mensagem personalizada
+        3.2 Rode sudo ls , e depois veja /var/log/sudo/sudo.log
+
+    4 Testar politica de senha:
+
+        passwd -e thevaris
+        4.1 quando o prazo expirar , ela avisara com 7 dias de antecedencia.
+
+    5 Checar monitoramento:
+
+        5.1 Apos a VM iniciar, deve aparecer a mensagem automatica com informacoes
+        5.2 Verifique a cada 10 minutos
+
+
+****ETAPA FINAL DA PARTE OBRIGATORIA***
+
+1 GERAR E ENTREGAR O ARQUIVO signature.txt
+    (Este arquivo serve para verificar que voce esta usando sua propria maquina virtual, e nao copiou de outra pessoa)
+    
+    1.1 Localizar o arquivo .vdi da sua VM(DISCO VIRTUAL) 
+
+        NO Ubunto:
+        1.1.1 Abra seu gerenciador de arquivos(Nautilus).
+        1.1.2 Va ate a pasta:
+
+            /home/SEU_USUARIO/virtualbox VMS/
+        
+        1.1.3 Encontra a pasta com o nome da sua VM(ex: meuDebian42).
+        1.1.4 Dentro dela, voce vera um arquivo com extensao .vdi. Este é seu disco virtual (ex: meuDebian42.vdi).
+
+    1.2 Gear o hash (assinatura) SHA-1 do disco
+
+        1.2.1 Abra o terminal
+        1.2.2 Va ate o diretorio da VM
+
+            cd ~/virtualBox\ VMs/meuDebian42
+
+        1.2.3 Gere a assinatura
+
+            sha1sum meuDebian42.vdi
+
+        1.2.4 Vai retornar algo assim:
+
+            6e657c4619944be17df3c31faa030c25e43e40af  meuDebian42.vdi
+
+    1.3 Criar o signature.txt
+
+        1.3.1 NO mesmo terminal
+
+            echo "6e657c4619944be17df3c31faa030c25e43e40af" > ~/signature.txt
+
+        1.3.2 Copie esse arquivo signature.txt para a raiz do seu repositorio GIT (onde esta seu projeto Born2beRoot).
+
+
+***** PARTE BONUS *****
+
+
+1 CRIAR PARTICOES EXTRAS CORRETAMENTE
+
+    1 Requisitos
+
+        1.1 Ter uma estrutura de particao semelhante a:
+
+            /boot    ->particao separada (nao criptografada)
+            /home    ->criptografada LVM
+            /        ->criptografada LVM
+        
+        1.2 Se voce ja criou isso na instalacao, otimo!
+        caso contratio, recomento refazer a instalacao e, no particonamento, escolher
+
+            1.2.1 "Guiado com LVM criptografado"
+            1.2.2 Criar uma participacao /boot separada
+            1.2.3 Usar o restante para LVM criptografado e dentro dele criar:
+
+                1.2.3.1 root(/)
+                1.2.3.2 home
+
+    2 Instalar e configurar WordPress (Bônus)
+
+        2.1 Vamos usar:
+
+            2.1.1 Servidor web: lighttpd
+            2.1.2 Banco de dados: MariaDB
+            2.1.3 Linguagem: PHP
+        
+        2.2 Instalar os pacotes
+
+            sudo apt install lighttpd mariadb-server php php-mysql php-cgi php-cli -Y
+
+        2.3 Ativar PHP no lighttpd
+
+            sudo lighty-enable-mod fastcgi
+            sudo lighty-enable-mod fastcgi-php
+            sudo systemctl reload lighttpd
+
+        2.4 Baixar WordPress
+
+            cd /var/www/html
+            sudo rm index.lighttpd.html
+            sudo wget https://wordpress.org/lastest.tar.gz
+            sudo tar -xvzf latest.tar.gz
+            sudo mv wordpress/* .
+            sudo rm -rf wordpress latest.tar.gz
+            sudo chown -R www-data:www-data /var/www/html
+
+        2.5 Configurar banco de dados
+
+            sudo mysql -u root
+
+            2.5.1 no Prompt do MariaD, digite:
+
+                CREATE DATABASE wordpress;
+                CREATE USER 'wpuser'@'localhost' IDENTIFIED BY 'senhaSegura123'
+                GRANT ALL PRIVILEGES ON wordpress.* TO 'wpuser'@'localhost';
+                FLUSH PRIVILEGES;
+                EXIT;
+
+        2.6 Configurar o WordPress
+
+            sudo cp wp-config-sample.php wp-config.php
+            sudo nano wp-config.php
+
+            2.6.1 Altere as seguintes linhas:
+
+                define('DB_NAME', 'wordpress');
+                define( 'DB_USER', 'wpuser');
+                define( 'DB_PASSWORD', 'senhaSegura123');
+
+            2.6.2 Reinicie os serviços
+
+                sudo systemctl restart lighttpd MariaDB
+        
+        2.7 Acessar pelo navegador
+
+            http://<IP-DA-VM>
+
+
+*** ESCOLHI O DOCKER *****
+
+Imagine que voce quer testar varios programas no mesmo computador sem "quebrar" seu sistema. O DOCKER
+é como uma caixa de areia segura, onde voco pode rodar aplocativos isolados (chamados containers) sem 
+o resto do sistema.
+
+
+**O QUE VAMOS FAZER**
+
+1. Instalar o Docker Compose
+2. Testar com um container (por exemplo, Nginx)
+3. Proteger o uso do Docker via grupo
+
+1 INSTALAR O DOCKER NO Debian
+
+    sudo apt update && sudo apt upgrade -Y
+
+    1.2 Instale dependencia necessarias
+
+        sudo apt install ca-certificates curl gnupg lsb-release -y
+    
+    1.3 Adicione a chave GPG Oficial do Docker
+
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+    1.4 Adicione o repositorio do Docker
+
+        echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+        https://download.docker.com/linux/debian \
+        $(lsb_release -cs) stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    
+    1.5 Atualize e instale Docker
+
+        sudo apt update
+        sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+
+    1.6 Verifique se foi instalado CORRETAMENTE
+
+        sudo docker version
+
+        1.6.1 deve aperecer algo como
+
+            cliente: Docker Engine - Community
+
+            ...
+
+            Server: Docker Engine - Community
+
+            ...
+
+2 TESTAR DOCKER COM UM CONTAINER SIMPPLES
+
+    sudo docker run -d -p 8080:80 --name meu_nginx Nginx
+
+    2.1 Explocacao:
+
+        run : roda um container
+        -d : detached(Segundo plano)
+        -p 8080:80 : mapeia a porta 8080 da sua maquina para a porta 80 do container
+        --name : da um nome ao container
+        nginx : imagem que queremos rodar
+
+    2.2 Verificar se esta funcionando
+
+        2.2.1 Abra navegarod (no UBUNTO) e acesse
+
+            http://<IP-DA-SUA-VM>:8080
+
+        2.2.2 Se aparecer a pagina padrar no Nginx, deu certo
+
+3 Instalar Docker Compose (caso precise no futuro)
+
+    sudo apt install docker-compose-plugin -y
+
+    3.1 para testar
+
+        docker compose version
+
+
+***OBS****
+
+Instalei o Docker como um serviço extra porque ele é muito usado em servidores reais para criar
+ambientes isolados e seguros, chamado containers. Testei o funcionamento rodando um container com o Nginx 
+mapeado na porta 8080. Tambem restingi o uso adicionando apenas meu usuario ao grupo docker, garantindo
+que nao qualquer usuario possa usa-lo.
+
+1 REFORCO DE SEGURANCA PARA BONUS
+
+    1.1 Criar regras no UFW PAra liberar a porta 8080
+
+        sudo ufw allow 8080/tcp
+    
+    1.2 Configurar o Docker para nao inciar container automaticamente no boot, se desejar
+
+        sudo systemctl disable docker
+
+2 GERENCIAR CONTAINER(RESUMO UTIL)
+
+    2.1 Ver container rodando
+
+        docker passwd
+
+    2.2 Parar um container
+
+        docker stop meu_nginx
+
+    2.3 Iniciar novamente
+
+        docker start meu_nginx
+
+    2.4 Remover
+
+        docker rm -f meu_nginx
