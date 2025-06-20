@@ -640,3 +640,5 @@ COMANDOS DURANTE A AVALICAO
 == Versao do Sudo
 
     sudo -V
+
+***** sha1sum <yourvm.vdi> ********
