@@ -494,3 +494,149 @@ que nao qualquer usuario possa usa-lo.
     2.4 Remover
 
         docker rm -f meu_nginx
+
+
+***********************************************************************************
+COMANDOS DURANTE A AVALICAO
+**********************************************************************************
+
+== Checar se o serviço fireWalld esta funcionando:
+
+    sudo systemctl status firewalld
+
+== Checar se o SSH esta funcionando:
+
+    sudo systemctl status sshd
+
+== Checar o sistema operacional escolhido
+
+    sudo cat /etc/os-release
+
+== Checar se o seu usuario esta no grupo de sudo e user42
+
+    groups (name_user)
+
+== Checar arquivos que foram alterados para configurcacao de senha
+
+    sudo vi /etc/pam.d/password-auth
+    sudo vi /etc/pam.d/system-auth
+    sudo vu /etc/login.defs
+    tambem o comando chage -l (nome_usuario)
+
+== Criar um usuario e atribuir senha a ele
+
+    sudo adduser (nome)
+    sudo passwd (nome)
+
+== Criar, mover e checar esse usuario a um novo grupo
+
+    sudo groupadd evaluating
+    sudo usermod -aG evaluating (nome_user)
+    groups (usuario)
+
+== Checar se o usuario esta com login da intra seguido de 42
+
+    hostname
+
+== Mudar nome hostname
+
+    sudo hostnamectl set-hostname (nome)
+    reboot
+
+== Ver as PARTICOES
+
+    lsblk
+
+== checar arquivos alteado no sudo
+
+    sudo visudo
+
+== Mandar o novo usuario criado pro grupo sudo
+
+    sudo usermod -aG wheel (nome)
+
+== Historico de configuracao sudo
+
+    sudo cat /var/log/sudo/sudo.log
+
+== Checar regras ativas
+
+    sudo firewall-cmd --list-allow
+
+== Criar e remover uma porta no firewall
+
+    sudo firewall-cmd --add-port=(numero)/tcp --permanent
+    sudo firewall-cmd --reload
+
+    sudo firewall-cmd --remove-port=(numero)/tcp --permanent
+
+== Checar se esta aberta a porta 4242 no ssh
+
+    sudo vi /etc/ssh/sshd_config 
+    ou
+    sudo systemctl status sshd
+
+== Conectar via SSH
+
+    hostname -I
+
+== Abre um terminal
+
+    ssh (nnome_usuario)@(ipr do hostname -I) -p 4242
+
+== Checar script, sleep e cron
+
+    cd/usr/local/bin
+    sudo vi monitoring.sh
+    sudo vi sleep.sh
+    sudo crontab -e
+
+************* COMANDO USADOS*****
+
+== Arquitetura
+
+    uname
+
+== CPUS
+
+    /proc/cpuinfo
+
+== Uso da Memoria
+
+    free -h
+
+== Uso do disco
+
+    df -h
+
+== Carga da CPU
+
+    top -bn1
+
+== Ultima inicializacao
+
+    who -b
+
+== Utilizacao do LVM
+
+    lsblk
+
+== Conexoes TCP
+
+    /proc/net/sockstat
+
+== Os usuario registrados
+
+    who
+
+== Rede
+
+    hostname -I & & & ip link show
+
+== Sudo
+
+    /var/log/sudo/sudo.log
+
+== Versao do Sudo
+
+    sudo -V
