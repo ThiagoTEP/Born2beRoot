@@ -13,6 +13,135 @@
     
     2.1 Vá ao site oficial do Debian e baixe o arquivo .iso da versão estável.
 
+*********VERSAO MELHOR*****
+
+1 CRIAR A MAQUINA VIRTUAL NO VirtualBox
+
+    1.1 Abrir o VirtualBox
+    1.2 Clique em "novo"
+    1.3 Preenhcha os campos
+        1.3.1 Nome: Born2beRoot
+        1.3.2 Pasta da maquina: /sgoinfre/goinfre/Perso/seu_login42
+        1.3.3 tipo : Linux
+        1.3.4 Versao: Debian (64-bit)
+    1.4 Clique em Proximo
+    1.5 Memoria (RAM): Define como 1024MB
+    1.6 Clique em Proximo
+    1.7 Disco rigido: Selecione "Criar um disco rigido virtual agora"
+    1.8 Clique em "Criar"
+    1.9 Tipo de disco: Selecione VDI(VirtualBox Disk Image)
+    1.10 Clique em Proximo
+    1.11 Armazenamento: Selecione "Dinamicamente alocado"
+    1.12 Clique em Proximo
+    1.13 Tamanho: Defina Entre 10GB e 13GB
+    1.14 Clique em Criar
+    1.15 Selecione a VM "Born2beroot" na lista e clique em "iniciar"
+
+2 Instalar o Debian
+
+    2.1 Escolha o arquivo ISO do Debian como disco de inicializacao
+    2.2 Clique em iniciar
+    2.3 Quando o menu do Debian aparecer, selecione Install( nao "Graphical Install")
+    2.4 siga as etapas
+        2.4.1 Idioma: Ingles
+        2.4.2 Regiao geografica: Selecione seu passwd_tries
+        2.4.3 layout do teclado
+    2.5 Hostname: Digite seu login seguido de "42"(exempleo: thevaris42)
+    2.6 Nome do dominio: Deixe em branco
+    2.7 Senha de root: Escolha uma senha forte e Confirme
+    2.8 crie um usuario:
+        2.8.1 Nome completo: seu_login42
+        2.8.2 Nome de usuario: seu_login
+        2.8.3 sneha do usuario: escolha uma senha e Confirme
+
+3 PARTICIONAMENTO MANUAL DO DISCO
+
+    3.1 Escolha "Particionamento Manual"
+    3.2 Selecione o disco: Algo como SCSI (0,0,0) (sda) >> pressione Enter
+    3.3 Quando perguntar, escolha "sim" para criar um nova tabela de particao
+
+    3.4 **** CRIAR PARTICOES ****
+
+        3.4.1 PARTICAO /boot (Nao criptografada)
+            3.4.1.1 Selecione o espaco livre
+            3.4.1.2 Escolha Criar um nova particao
+            3.4.1.3 tamanho: 500 MB
+            3.4.1.4 tipo: Primaria
+            3.4.1.5 localizacao: inicio
+            3.4.1.6 use como: Ext4
+            3.4.1.7 Ponto de montagem: /boot
+            3.4.1.8 Feito com esta particao
+
+        3.4.2 PARTICAO PARA CRIPTOGRAFIA
+            3.4.2.1 No espaco livre restante
+            3.4.2.2 criar nova particao
+            3.4.2.3 use todo o restante do espaco
+            3.4.2.4 Tipo: logica
+            3.4.2.5 Nao monte
+            3.4.2.6 feito com esta particao
+
+4 CRIPTOFRAFAR O DISCO
+    4.1 Escolha "Configurar volumes criptografados" >> sim
+    4.2 Selecione "Criar volume criptografados"
+    4.3 Escolha apenas a particao logica anteriormente (ex: /dev/sda5)
+    4.4 feito >> Concluir >> sim
+    4.5 Aguarde a formatacao
+    4.6 Escolha uma senha forte de criptografia (IMPORTANTE: voce nao pode esquece-la)
+
+5 CONFIGURAR LVM
+    5.1 EScolha "CONFIGURAR O GERENCIADOR DE VOLUME LOGICO(LVM)" >> sim.
+    5.2 Criar grupo de volumes
+        5.2.1 Nome: LVMGRoup
+        5.2.2 Disco: /dev/mapper/sda5_crypt
+
+    5.3 Criar volumes logicos(LVs)
+        5.3.1 root - 2.8G
+        5.3.2 home - 2G
+        5.3.3 swap - 1G
+        5.3.4 tmp - 2G
+        5.3.5 srv - 1.5G
+        5.3.6 var - 2G
+        5.3.7 var-log - 2G
+    5.6 apos criar todos, selecione "Exibir detalhes de configuracao" e entao "Concluir"
+
+
+6 DEFINIR SISTEMAS DE ARQUIVOS E PONTOS DE MONTAGEM
+
+    6.1 Para cada Volume logico:
+
+        Volume          Usar como           Ponto de montagem
+        -----------------------------------------------------
+        root            Ext4                /
+        home            Ext4                /home
+        swap            swap                -
+        tmp             Ext4                /tmp
+        srv             Ext4                /srv
+        var             Ext4                /var
+        var-log         Ext4                /var/log(manual)
+
+    6.2 Depois de configurar todos, va ate o final e selecione "finalizar particionamento e escrever mudancas no disco" >> sim
+
+7 FINALIZAR INSTALACAO
+
+    7.1 Quando perguntar sobre scanner de disco, escolha nao
+    7.2 Escolha pais e mirror de rede
+    7.3 Campo de proxy; deixe vazio
+    7.4 Nao participar da pesquisa
+    7.5 Desmarque todas as opcoes de software
+    7.6 Instale o GRUB; escoha SIM, e intagel em /dev/sda
+    7.8 Após o reboot, digite sua senha de criptografia
+    7.9 Faça login como o usario criado
+
+*** VERIFICAR POS-INSTALACAO
+
+Abra o terminal
+
+    lsblk
+    cat /etc/os-release
+
+******** FIM VERSAO MELHOR*******
+
+
 3 . Criar a VM
 
     3.1 Abra o VirtualBox
