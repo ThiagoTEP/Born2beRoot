@@ -805,11 +805,19 @@ Camandos
 lsblk (mapa do hd)
 cat /etc/os-release (versao Debian que esta instalada)
 sudo -V   (versao do meu sudo)
-sudo systemctl status ufw
-ufw version
-hostnamectl status
+sudo --version
+ufw version (root)
+ssh -V
 php -v
+mariadb -V
 sudo lighttpd -v
+apt show apparmor
+
+******STATUS********
+
+hostnamectl status
+sudo systemctl status ufw
+systemctl status apparmor
 systemctl status lighttpd
 systemctl status mariadb
 systemctl status mysql
@@ -887,6 +895,11 @@ sudo systemctl restart ssh (quando altera a porta)
 	ssh <username>@127.0.0.1 -p 4242 (p para porta)
 	(NAO ESQUECER DE IR EM DEFINICOES NA VM -> REDE -> ASSOCIADA A : "Adaptador 'Bridged'" -> OK -> ligar VM )
 
+
+
+
+
+
 ----BONUS---
 
 verificar se tem algum sistema proibido
@@ -905,5 +918,8 @@ sudo ufw status (ver que a porta foi adicionada)
 Add a regra host port 8080 guest port 80)
 
 http://127.0.0.1:8080 
+
+
+!!!!!!IMPORTANTE!!!!!!!
 
 sudo journalctl -b | grep CRON
