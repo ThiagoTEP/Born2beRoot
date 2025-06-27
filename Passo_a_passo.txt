@@ -347,6 +347,29 @@ Abra o terminal
         #Sudo : $sudo_cnt cmd
         "
 
+
+		meu sleep.sh
+
+		#!/bin/bash
+
+# Pega o minuto e segundo atuais no momento da execução
+CURR_MIN=$(date +%M)
+CURR_SEC=$(date +%S)
+
+# Calcula quantos segundos faltam para o próximo múltiplo de 10 minutos
+# 10 minutos = 600 segundos
+# Faltam: (10 - (minuto atual mod 10)) minutos + segundos faltando no minuto
+MIN_REST=$((10 - CURR_MIN % 10))
+DELAY=$((MIN_REST * 60 - CURR_SEC))
+
+# Se o delay for igual a 600 (exatamente múltiplo), zera para dormir 0 segundos
+if [ $DELAY -eq 600 ]; then
+    DELAY=0
+fi
+
+sleep $DELAY
+
+
     3 Salve (CTRL+O, Enter) e de permissao:
 
         chmod +x /usr/local/bin/monitoring.sh
@@ -789,6 +812,7 @@ php -v
 sudo lighttpd -v
 systemctl status lighttpd
 systemctl status mariadb
+systemctl status mysql
 
 ************************************
 
@@ -814,7 +838,7 @@ sudo chage -W 7 <user>
 sudo chage -M 30 -m 2 -W 7
 passwd -x 30 -n 2 -w 7
 
-chage -I <username/root> (checar senhas do usuario)
+chage -l <username/root> (checar senhas do usuario)
 
 nao /etc/security/pwquality.conf (qualidade da senha)
 
@@ -882,4 +906,4 @@ Add a regra host port 8080 guest port 80)
 
 http://127.0.0.1:8080 
 
-
+sudo journalctl -b | grep CRON
