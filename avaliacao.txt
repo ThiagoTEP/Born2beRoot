@@ -1,0 +1,142 @@
+****************PARA TESTE***************
+
+Camandos
+
+****VERSOES*** (GERENCIAMENTO GLOBAL) sudo apt show <ufw ou ssh etc>*******
+lsblk (mapa do hd)
+cat /etc/os-release (versao Debian que esta instalada)
+lsb_release -a (versao do Debian)
+sudo -V   (versao do meu sudo)
+sudo --version
+ufw version (root)
+ssh -V
+php -v
+mariadb -V
+sudo lighttpd -v
+apt show apparmor
+
+******STATUS********
+
+hostnamectl status
+sudo systemctl status ufw
+systemctl status apparmor
+systemctl status lighttpd
+systemctl status mariadb
+systemctl status mysql
+systemctl status cron
+
+************************************
+
+su root (login root que vai para /home/user)
+su --login (root)
+
+apt update (atualizar)
+apt upgrade (atualizar a atualizacao)
+
+
+sudo whoami (saber se o user e root)
+
+username ALL=(ALL:ALL) ALL (APRENDER)
+
+SENHAS
+
+sudo visudo (abri o arquivo de passwords)
+nano /etc/login.defs (datas de senhas)
+sudo chage -M 30 <user>
+sudo chage -m 2 <user>
+sudo chage -W 7 <user>
+
+sudo chage -M 30 -m 2 -W 7
+passwd -x 30 -n 2 -w 7
+
+chage -l <username/root> (checar senhas do usuario)
+
+nao /etc/security/pwquality.conf (qualidade da senha)
+
+USUARIOS
+
+sudo usermod -aG sudo <user> (adicionar user ao grupo sudo) (FAIL VER MOTIVO)
+
+sudo adduser <login>
+sudo deluser <usuario criado>
+sudo rm -rf /home/<usuario> (para apagar a pasta que foi criada)
+ls /home (lista usuarios)
+sudo addgroup user42
+sudo adduser <user> <groupname>
+
+getent group (ver grupos)
+getent group <namegroup>
+groups <nameuser> (quais grupos pertence)
+
+hostnamectl (mostra sdasdaquem -e o host name)
+hostnamectl set-hostname <hostname novo> (altera o hostname)
+nano /etc/hosts
+sudo reboot hostnamectl
+hostnamectl status
+
+FAZER LOGIN DE USUARIOS
+
+su -l (ROOT)
+su - <user> (Se for pelo root vai direto)
+sudo passwd <user/root> (alterar o password)
+
+UFW (COMANDOs)
+
+sudo ufw allow <port> (aqui eu pemito entrada de porta 4242)
+sudo ufw deny <port> (aqui eu bloqueio a porta de entrada)
+
+sudo ufw delete allow <port>
+sudo ufw delete deny <port>
+
+sudo ufw status numbered
+sudo ufw delete <numero>
+sudo ufw status
+sudo ufw status verbose
+
+ss -tunlp
+
+SSH (COMANDOS)
+
+sudo systemctl status ssh
+sudo nano /etc/ssh/sshd_config (onde faco a configuracao de porta)
+sudo systemctl restart ssh (quando altera a porta)
+
+tty (ve o terminal que esta usar)
+who (ve todos terminais logados)
+
+-> ABRIR EM OUTRO TERMINAL PARA TESTE
+
+	Na VM -> Hostname -I
+	ip --color addr
+
+	ssh <username>@127.0.0.1 -p 4242 (p para porta)
+	(NAO ESQUECER DE IR EM DEFINICOES NA VM -> REDE -> ASSOCIADA A : "Adaptador 'Bridged'" -> OK -> ligar VM )
+
+
+
+
+
+
+----BONUS---
+
+verificar se tem algum sistema proibido
+
+systemctl status apache2
+
+sudo apt purge apche2 (para desinstalar )
+
+systemctl status lighttpd
+php -V
+
+sudo ufw allow http (para liberar a porta para poder usar)
+sudo ufw status (ver que a porta foi adicionada)
+
+(tenho que adicionar a rule GO to VM >> Settings >> Network >> Adapter 1 >> Port Forwarding
+Add a regra host port 8080 guest port 80)
+
+http://127.0.0.1:8080 
+
+
+!!!!!!IMPORTANTE!!!!!!!
+
+sudo journalctl -b | grep CRON
