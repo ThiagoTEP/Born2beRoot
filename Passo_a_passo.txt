@@ -812,6 +812,7 @@ php -v
 mariadb -V
 sudo lighttpd -v
 apt show apparmor
+hostnamectl
 
 ******STATUS********
 
@@ -823,6 +824,36 @@ systemctl status mariadb
 systemctl status mysql
 
 ************************************
+
+******** APT E APTITUDE ****
+
+sudo apt update
+sudo apt install aptitude
+sudo apt purge aptitude
+
+**************************************
+
+********* SElinux e APPArmor **********
+
+O que são SELinux e AppArmor?
+
+    SELinux (Security-Enhanced Linux) é um sistema de controle de acesso baseado em políticas, criado pela NSA para reforçar a segurança do Linux, com um modelo muito detalhado e poderoso.
+
+    AppArmor é outro sistema de controle de acesso, mas que funciona de maneira mais simples e fácil de configurar, usando perfis para cada aplicação.
+
+(Em resumo sao sistemas de controle de acesso uma mais complexo e com mais regras de configuracao (ROCKY SELINUX) outro para Debian)
+
+sudo apparmor_status
+
+sudo aa-status
+
+
+
+************************************************************
+
+
+
+
 
 su root (login root que vai para /home/user)
 su --login (root)
